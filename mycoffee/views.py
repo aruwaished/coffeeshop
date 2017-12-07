@@ -3,6 +3,9 @@ from .forms import UserSignup, UserLogin
 from django.contrib.auth import authenticate, login, logout
 from .forms import CoffeeForm
 from decimal import Decimal
+from django.http import JsonResponse
+from .models import Bean, Roast, Syrup, Powder
+import json
 
 def coffee_price(instance):
     total_price = instance.bean.price + instance.roast.price + (instance.espresso_shots*Decimal(0.250))
@@ -78,3 +81,34 @@ def userlogin(request):
 def userlogout(request):
     logout(request)
     return redirect("/")
+
+def ajax_price(request):
+    total_price = Decimal(0)
+
+    bean_id = request.GET.get('bean')
+    if bean_id:
+        total_price += Bean.objects.get(id=bean_id).price
+
+    roast_id = request.GET.get('roast')
+    if roast_id:
+        total_price += Roast.objects.get(id=roast_id).price
+
+    syrups = json.loads(request.GET.get('syrups'))
+    if len(syrups)>0:
+        for syrup_id in syrups:
+            total_price += Syrup.objects.get(id=syrup_id).price
+
+    powders = json.loads(request.GET.get('powders'))
+    if len(powders)>0:
+        for powder_id in powders:
+            total_price += Powder.objects.get(id=powder_id).price
+
+    milk = request.GET.get('milk')
+    if milk=='true':
+        total_price += Decimal(0.100)
+
+    shots=request.GET.get('espresso_shots')
+    if shots:
+        total_price += (int(shots)*Decimal(0.250))
+
+    return JsonResponse(round(total_price,3), safe=False)
