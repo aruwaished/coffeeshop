@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mycoffee',
     'crispy_forms',
+    'cart',
 
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
